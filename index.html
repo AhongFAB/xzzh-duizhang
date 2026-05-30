@@ -371,7 +371,6 @@ async function genPdf(cn){
     toast(`已导出 PDF：${cn}`,'suc');
   }catch(e){console.error(e);toast('PDF 导出失败：'+e.message,'err')}
 }
-}
 
 function toast(msg,type='inf'){const t=document.getElementById('toast');t.textContent=msg;t.className=`toast ${type} show`;setTimeout(()=>t.classList.remove('show'),3000)}
 </script>
