@@ -356,10 +356,21 @@ async function expPdf(){if(!A.cur){toast('请先选择客户','inf');return}awai
 async function expAllPdf(){const ns=Object.keys(A.custs);if(!ns.length){toast('没有数据','inf');return}for(const n of ns){selCust(n);await new Promise(r=>setTimeout(r,150));await genPdf(n);await new Promise(r=>setTimeout(r,400))}toast(`已导出 ${ns.length} 份 PDF`,'suc')}
 
 async function genPdf(cn){
-  if(A.cur!==cn)selCust(cn);await new Promise(r=>setTimeout(r,100));
+  if(A.cur!==cn)selCust(cn);await new Promise(r=>setTimeout(r,200));
   const el=document.getElementById('reconDoc');if(!el){toast('预览内容为空','err');return}
-  const sn=cn.replace(/[\\/:*?"<>|]/g,'_').substring(0,30);
-  try{await html2pdf().set({margin:[8,8,8,8],filename:`销售对账单_${sn}.pdf`,image:{type:'jpeg',quality:.98},html2canvas:{scale:2,useCORS:true,letterRendering:true},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},pagebreak:{mode:['avoid-all','css','legacy']}}).from(el).save();toast(`已导出 PDF：${cn}`,'suc')}catch(e){console.error(e);toast('PDF 导出失败','err')}
+  const sn=cn.replace(/[\\\/:*?"<>|]/g,'_').substring(0,30);
+  try{
+    const canvas=await html2canvas(el,{scale:2,useCORS:true,backgroundColor:'#ffffff',logging:false});
+    const imgData=canvas.toDataURL('image/jpeg',0.98);
+    const imgW=canvas.width;const imgH=canvas.height;
+    const pdfW=210;const pdfH=(imgH*pdfW)/imgW;
+    const{jsPDF}=window.jspdf;
+    const pdf=new jsPDF({unit:'mm',format:[pdfW,pdfH],orientation:'portrait'});
+    pdf.addImage(imgData,'JPEG',0,0,pdfW,pdfH,null,'FAST');
+    pdf.save(`销售对账单_${sn}.pdf`);
+    toast(`已导出 PDF：${cn}`,'suc');
+  }catch(e){console.error(e);toast('PDF 导出失败：'+e.message,'err')}
+}
 }
 
 function toast(msg,type='inf'){const t=document.getElementById('toast');t.textContent=msg;t.className=`toast ${type} show`;setTimeout(()=>t.classList.remove('show'),3000)}
